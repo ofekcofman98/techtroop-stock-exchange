@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Exchange</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div class="search-container">
         <h2>Search Nasdaq Stocks</h2>
-        <input type="text" id="search-input" placeholder="Search company name or symbol...">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search company name or symbol...">
+            <button id="search-button">Search</button>
+        </div>
         
         <div id="loader" class="hidden">Loading...</div>
         
