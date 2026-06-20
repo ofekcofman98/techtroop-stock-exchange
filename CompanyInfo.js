@@ -16,7 +16,7 @@ class CompanyRenderer {
     }
 
     renderProfile(profile) {
-        const changeValue = parseFloat(profile.changes);
+        const changeValue = parseFloat(profile.changePercentage);
         const changeColorClass = changeValue >= 0 ? 'positive' : 'negative';    
         
         this.detailsContainer.innerHTML = `
@@ -31,13 +31,11 @@ class CompanyRenderer {
             
             <div class="stock-info">
                 <span class="stock-price">Stock Price: $${profile.price}</span>
-                <span class="stock-change ${changeColorClass}">(${profile.changes}%)</span>
+                <span class="stock-change ${changeColorClass}">(${changeValue.toFixed(2)}%)</span>
             </div>
 
             <p class="company-description">${profile.description}</p>
-            
-            <a href="${profile.website}" target="_blank" class="company-website-link">Visit Company Website ↗</a>
-        `;
+            `;
     }
 
     renderChart(historyData) {
@@ -103,7 +101,7 @@ async function loadPageData() {
     } 
     catch (error) {
         console.error("Error loading page:", error);
-        companyLoader.textContent = "An error occurred while loading data.";
+        document.getElementById('loader').textContent = "An error occurred while loading data.";
     }
 }
 
