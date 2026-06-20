@@ -1,31 +1,25 @@
-const apiManager = new APIManager();
+class CompanyRenderer {
+    constructor() {
+        this.loader = document.getElementById('loader');
+        this.detailsContainer = document.getElementById('details-container');
+        this.chart = null;
+    }
+    
+    showLoading() {
+        this.loader.classList.remove('hidden');
+        this.detailsContainer.classList.add('hidden');
+    }
+    
+    hideLoading() {
+        this.loader.classList.add('hidden');
+        this.detailsContainer.classList.remove('hidden');
+    }
 
-const companyLoader = document.getElementById('loader'); 
-const companyDetails = document.getElementById('details-container');
-
-const urlParams = new URLSearchParams(window.location.search);
-const symbol = urlParams.get('symbol');
-
-async function loadPageData() {
-    if (!symbol) return;
-
-    try {
-        companyLoader.classList.remove('hidden');
-        companyDetails.classList.add('hidden');
-
-        await apiManager.getCompany(symbol);
-        
-        const profile = apiManager.companyProfile;
-        
-        if (!profile) {
-            companyLoader.textContent = "Company profile not found.";
-            return;
-        }
-        
+    renderProfile(profile) {
         const changeValue = parseFloat(profile.changes);
         const changeColorClass = changeValue >= 0 ? 'positive' : 'negative';    
         
-        companyDetails.innerHTML = `
+        this.detailsContainer.innerHTML = `
             <div class="profile-header">
                 <img src="${profile.image}" alt="${profile.companyName} logo" class="profile-logo">
                 <h2>${profile.companyName} (${profile.symbol})</h2>
@@ -40,11 +34,68 @@ async function loadPageData() {
             
             <a href="${profile.website}" target="_blank" class="company-website-link">Visit Company Website ↗</a>
         `;
+    }
 
-        companyLoader.classList.add('hidden');
-        companyDetails.classList.remove('hidden');
+    renderChart(historyData) {
+        const ctx = document.getElementById('stock-chart')
 
-        console.log("Data is ready to be used on screen:", apiManager.companyProfile);
+        if (this.chart) {
+            this.chart.destroy();
+        }
+
+        const sortedData = [...historyData];
+
+        const labels = sortedData.map(item => item.date);
+        const prices = sortedData.map(item => item.close);
+
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Stock Price History',
+                    data: prices,
+                    borderColor: '#e24373',
+                    backgroundColor: 'rgba(226, 67, 115, 0.7)',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#e24373',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+}
+
+const apiManager = new APIManager();
+const companyRenderer = new CompanyRenderer();
+
+const urlParams = new URLSearchParams(window.location.search);
+const symbol = urlParams.get('symbol');
+
+async function loadPageData() {
+    if (!symbol) return;
+
+    try {
+        companyRenderer.showLoading();
+
+        await apiManager.getCompany(symbol);
+        await apiManager.getHistoricalPrice(symbol);
+
+        if (!apiManager.companyProfile) {
+            document.getElementById('loader').textContent = "Company profile not found.";
+            return;
+        }
+        
+        companyRenderer.renderProfile(apiManager.companyProfile);
+        companyRenderer.renderChart(apiManager.stockHistory);
+
+        companyRenderer.hideLoading();
     } 
     catch (error) {
         console.error("Error loading page:", error);

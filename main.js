@@ -3,7 +3,6 @@ const renderer = new Renderer();
 
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
-const loading = document.getElementById('loader');
 
 async function handleSearch() {
     const query = searchInput.value.trim();
@@ -12,13 +11,12 @@ async function handleSearch() {
         renderer.render([]);
         return;
     }
-    loading.classList.remove('hidden');
-
-    document.getElementById('results-container').innerHTML = '';
-
+    
+    renderer.showLoading();
+    
     await apiManager.searchCompanies(query);
     
-    loading.classList.add('hidden');
+    renderer.hideLoading();
     
     renderer.render(apiManager.companies);
 }

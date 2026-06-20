@@ -2,11 +2,13 @@ class APIManager {
     constructor(){
         this.companies = [],
         this.companyProfile = null;
+        this.stockHistory = [];
 
         this.apiKey = "lsWhQ8lq5pJslf0bU9AI2yi2IyjMU0Ll";
         
         this.baseUrl = "https://financialmodelingprep.com/api/v3";
         this.stableUrl = "https://financialmodelingprep.com/stable";
+
     }
     async searchCompanies(query) {
         try {
@@ -38,8 +40,25 @@ class APIManager {
         catch (error) {
             console.error("Error fetching company profile:", error);
         }
-        
     }
 
+    async getHistoricalPrice(symbol) {
+        try {
+            const response = await fetch(`${this.stableUrl}/historical-price-eod/light?symbol=${symbol}&apikey=${this.apiKey}`);
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                console.error("API returned invalid history data:", data);
+                this.stockHistory = [];
+                return;
+            }
+
+            this.stockHistory = data; 
+        }
+        catch (error) {
+            console.error("Error fetching historical price:", error);
+            this.stockHistory = [];
+        }
+    }
 
 }
