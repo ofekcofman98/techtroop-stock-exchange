@@ -11,3 +11,18 @@
     color: red;
     font-weight: bold;
 }
+
+.company-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}

@@ -21,7 +21,11 @@ class CompanyRenderer {
         
         this.detailsContainer.innerHTML = `
             <div class="profile-header">
-                <img src="${profile.image}" alt="${profile.companyName} logo" class="profile-logo">
+                <img src="${profile.image}" 
+                    alt="${profile.companyName} logo" 
+                    class="profile-logo" 
+                    onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3522/3522500.png';"
+                >
                 <h2>${profile.companyName} (${profile.symbol})</h2>
             </div>
             
