@@ -1,3 +1,13 @@
 .hidden {
     display: none
 }
+
+.positive {
+    color: forestgreen;
+    font-weight: bold;
+}
+
+.negative {
+    color: red;
+    font-weight: bold;
+}

@@ -13,8 +13,10 @@ class Renderer {
             resultContainer.className = 'result-container';
 
             resultContainer.innerHTML = `
-                <span class="company-name">${company.name}</span>
-                <span class="company-symbol">(${company.symbol})</span>
+                <a href="company.html?symbol=${company.symbol}" class="company-link">
+                    <span class="company-name">${company.name}</span>
+                    <span class="company-symbol">(${company.symbol})</span>
+                </a>
             `;
             
             container.appendChild(resultContainer);
