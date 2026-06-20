@@ -9,7 +9,8 @@ class APIManager {
         this.baseUrl = "https://financialmodelingprep.com/api/v3";
         this.stableUrl = "https://financialmodelingprep.com/stable";
 
-        this.isMockMode = true;
+        this.limitPerRequest = 3;
+        this.isMockMode = false;
     }
 
     async fetchGeneric(url) {
@@ -41,9 +42,15 @@ class APIManager {
                 return;
             }
             
-            const profileUrls = searchResults.map(company => {
-                return `${this.stableUrl}/profile?symbol=${company.symbol}&apikey=${this.apiKey}`;
-            });            
+            const profileUrls = [];
+
+            for (let i = 0; i < searchResults.length; i += this.limitPerRequest) {
+                const chunk = searchResults.slice(i, i + this.limitPerRequest);
+                const symbolsString = chunk.map(c => c.symbol).join(',');
+
+                const url = `${this.stableUrl}/profile?symbol=${symbolsString}&apikey=${this.apiKey}`;
+                profileUrls.push(url);
+            }
 
             const profilesResults = await Promise.all(
                 profileUrls.map(url => this.fetchGeneric(url))
@@ -58,15 +65,29 @@ class APIManager {
     }
 
     processSearchData(searchResults, profilesResults) {
-        this.companies = searchResults.map((company, index) => {
-            const data = profilesResults[index];
+        let allProfiles = [];
+        for (let i = 0; i < profilesResults.length; i++) {
+            if (Array.isArray(profilesResults[i])) {
+                allProfiles.push(...profilesResults[i]);
+            }
+        }
+
+        console.log("All Profiles fetched for list:", allProfiles);
+
+        this.companies = searchResults.map((company) => {
+            const data = allProfiles.find(profile => {
+                return profile && 
+                       profile.symbol && 
+                       company.symbol && 
+                       profile.symbol.trim().toUpperCase() === company.symbol.trim().toUpperCase();
+            });
             
             let logoImage = 'https://cdn-icons-png.flaticon.com/512/3522/3522500.png';
             let stockChanges = 0;
 
-            if (Array.isArray(data) && data.length > 0 && data[0] !== null) {
-                logoImage = data[0].image || logoImage;
-                stockChanges = data[0].changePercentage !== undefined ? parseFloat(data[0].changePercentage) : 0;
+            if (data) {
+                logoImage = data.image || logoImage;
+                stockChanges = data.changePercentage !== undefined ? parseFloat(data.changePercentage) : 0;
             }
         
             return {
@@ -110,16 +131,18 @@ class APIManager {
         }
 
         try {
-            const response = await fetch(`${this.stableUrl}/historical-price-eod/light?symbol=${symbol}&apikey=${this.apiKey}`);
-            const data = await response.json();
+            const data = await this.fetchGeneric(`${this.stableUrl}/historical-price-full?symbol=${symbol}&apikey=${this.apiKey}`);
 
-            if (!Array.isArray(data)) {
-                console.error("API returned invalid history data:", data);
-                this.stockHistory = [];
-                return;
+            if (data && Array.isArray(data.historical)) {
+                this.stockHistory = data.historical.slice(0, 30).reverse();
             }
-
-            this.stockHistory = data; 
+            else if (Array.isArray(data)) {
+                this.stockHistory = data.slice(0, 30).reverse();
+            } 
+            else {
+                console.error("API returned invalid history data structure:", data);
+                this.stockHistory = [];
+            }
         }
         catch (error) {
             console.error("Error fetching historical price:", error);
